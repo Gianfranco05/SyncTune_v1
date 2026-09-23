@@ -1,0 +1,49 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: synctune
+      POSTGRES_PASSWORD: synctune
+      POSTGRES_DB: synctune
+    ports:
+      # Host port 5434, not 5432 (native PostgreSQL service already bound
+      # there) and not 5433 (taken by an unrelated project's Docker
+      # container on this machine, `facetrack-postgres`).
+      - "5434:5432"
+    volumes:
+      - synctune_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U synctune"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    # Reuses the same .env you already created for local dev (README §3) —
+    # DATABASE_URL is the one value that must differ inside the Docker
+    # network (the "postgres" service name, not localhost:5434), so it's
+    # overridden below.
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgresql+psycopg2://synctune:synctune@postgres:5432/synctune
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: http://127.0.0.1:8000
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  synctune_postgres_data:
