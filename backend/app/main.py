@@ -6,6 +6,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app.api import dashboard, playlists, spotify, sync, youtube
 from app.core.config import settings
+from app.core.errors import ExternalResponseError
 from app.core.logging import configure_logging, logger
 
 configure_logging()
@@ -45,3 +46,15 @@ async def external_api_error_handler(request: Request, exc: httpx.HTTPStatusErro
         detail = "Uno de los servicios externos (Spotify o YouTube) no respondió correctamente. Probá de nuevo."
     logger.warning("external_api_error", extra={"status": status, "path": request.url.path})
     return JSONResponse(status_code=502, content={"detail": detail})
+
+
+@app.exception_handler(ExternalResponseError)
+async def external_response_error_handler(request: Request, exc: ExternalResponseError) -> JSONResponse:
+    """Spotify/YouTube answered OK but with a shape we don't understand
+    (an API change). Logged with the detail for us; the user gets a
+    plain-language message, never a stack trace."""
+    logger.error("external_response_unexpected", extra={"path": request.url.path, "detail": str(exc)})
+    return JSONResponse(
+        status_code=502,
+        content={"detail": "Spotify o YouTube respondieron algo que no esperábamos. Probá de nuevo en un rato."},
+    )

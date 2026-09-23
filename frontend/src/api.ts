@@ -7,6 +7,7 @@ import type {
   PlaylistHealthResponse,
   PlaylistPreviewResponse,
   PlaylistSelection,
+  PlaylistTrack,
   Sync,
   SpotifyMe,
   SyncPreviewResponse,
@@ -88,7 +89,7 @@ export interface ConfirmSyncBody {
   track_uri: string
   track_name: string
   track_artists: string
-  confidence: number
+  confidence: number | null
   playlist_id: string
   playlist_name: string
 }
@@ -112,11 +113,15 @@ export function getDashboard(): Promise<DashboardResponse> {
   return request('/api/dashboard')
 }
 
-export function previewPlaylist(youtubeUrl: string): Promise<PlaylistPreviewResponse> {
+export function previewPlaylist(youtubeUrl: string, offset = 0): Promise<PlaylistPreviewResponse> {
   return request('/api/sync/playlist/preview', {
     method: 'POST',
-    body: JSON.stringify({ youtube_url: youtubeUrl }),
+    body: JSON.stringify({ youtube_url: youtubeUrl, offset }),
   })
+}
+
+export function searchTracks(query: string): Promise<PlaylistTrack[]> {
+  return request(`/api/spotify/search?${new URLSearchParams({ q: query })}`)
 }
 
 export function confirmPlaylist(

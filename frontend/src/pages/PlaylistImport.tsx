@@ -12,6 +12,7 @@ import {
 import { CONFIDENCE_LABEL, friendlyError } from '../format'
 import { loadSettings, type SyncSettings } from '../settings'
 import type { Playlist, PlaylistPreviewResponse, Sync, SpotifyTrackCandidate } from '../types'
+import ManualSearch from './ManualSearch'
 
 // item_id -> chosen candidate, or null to skip that song.
 type Selections = Record<number, SpotifyTrackCandidate | null>
@@ -23,6 +24,9 @@ export default function PlaylistImport() {
   const [youtubeUrl, setYoutubeUrl] = useState('')
   const [preview, setPreview] = useState<PlaylistPreviewResponse | null>(null)
   const [selections, setSelections] = useState<Selections>({})
+  // Candidates picked by hand, per item — offered in that row's dropdown.
+  const [manualCandidates, setManualCandidates] = useState<Record<number, SpotifyTrackCandidate[]>>({})
+  const [searchingItem, setSearchingItem] = useState<number | null>(null)
   const [playlists, setPlaylists] = useState<Playlist[]>([])
   const [selectedPlaylistId, setSelectedPlaylistId] = useState('')
   const [newPlaylistName, setNewPlaylistName] = useState('')
@@ -37,14 +41,16 @@ export default function PlaylistImport() {
     getPlaylists().then(setPlaylists).catch(() => setPlaylists([]))
   }, [])
 
-  async function handlePreview() {
+  async function handlePreview(offset = 0) {
     if (!youtubeUrl.trim()) return
     setLoading(true)
     setError(null)
     setPreview(null)
     setResult(null)
+    setManualCandidates({})
+    setSearchingItem(null)
     try {
-      const data = await previewPlaylist(youtubeUrl.trim())
+      const data = await previewPlaylist(youtubeUrl.trim(), offset)
       setPreview(data)
       const initial: Selections = {}
       for (const item of data.items) {
@@ -89,7 +95,8 @@ export default function PlaylistImport() {
             track_uri: chosen?.uri ?? null,
             track_name: chosen?.name ?? null,
             track_artists: chosen?.artists ?? null,
-            confidence: chosen?.confidence ?? null,
+            // A hand-picked track has no real match score to record.
+            confidence: chosen && !chosen.manual ? chosen.confidence : null,
             skip: !chosen,
           }
         }),
@@ -101,6 +108,21 @@ export default function PlaylistImport() {
       setLoading(false)
     }
   }
+
+  function pickManual(itemId: number, candidate: SpotifyTrackCandidate) {
+    setManualCandidates((prev) => ({ ...prev, [itemId]: [...(prev[itemId] ?? []), candidate] }))
+    setSelections((prev) => ({ ...prev, [itemId]: candidate }))
+    setSearchingItem(null)
+  }
+
+  const nextBatch =
+    preview && preview.next_offset !== null ? (
+      <button onClick={() => handlePreview(preview.next_offset ?? 0)} disabled={loading}>
+        Procesar las siguientes canciones ({preview.next_offset + 1}–
+        {Math.min(preview.next_offset + (preview.next_offset - preview.offset), preview.total_video_count)} de{' '}
+        {preview.total_video_count})
+      </button>
+    ) : null
 
   if (youtubeConnected === false) {
     return (
@@ -126,6 +148,7 @@ export default function PlaylistImport() {
           ✓ {counts.imported} agregadas, {counts.duplicate} ya existían, {counts.skipped} ignoradas — playlist{' '}
           <strong>{result.destination_name}</strong>.
         </p>
+        {nextBatch && <p>{nextBatch}</p>}
         <Link to="/history">Ver en el historial</Link>
       </div>
     )
@@ -141,7 +164,7 @@ export default function PlaylistImport() {
           onChange={(e) => setYoutubeUrl(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handlePreview()}
         />
-        <button onClick={handlePreview} disabled={loading}>
+        <button onClick={() => handlePreview()} disabled={loading}>
           Buscar
         </button>
       </div>
@@ -166,12 +189,15 @@ export default function PlaylistImport() {
         <div className="results">
           <p className="video-title">
             Playlist: <strong>{preview.playlist_title}</strong> — {preview.total_video_count} canciones
-            {preview.truncated && ` (se procesan las primeras ${preview.items.length})`}
+            {(preview.next_offset !== null || preview.offset > 0) &&
+              ` (esta tanda: ${preview.offset + 1}–${preview.offset + preview.items.length})`}
           </p>
 
           <ul className="playlist-rows">
             {preview.items.map((item) => {
               const chosen = selections[item.item_id]
+              const options = [...item.candidates, ...(manualCandidates[item.item_id] ?? [])]
+              const canSearch = !isSimple || item.candidates.length === 0
               return (
                 <li key={item.item_id} className="playlist-row">
                   <div className="playlist-row-source">{item.video.title}</div>
@@ -179,31 +205,50 @@ export default function PlaylistImport() {
                     <div className="playlist-row-source">{chosen ? `${chosen.name} — ${chosen.artists}` : 'Ignorar'}</div>
                   ) : (
                     <select
+                      aria-label={`Coincidencia para ${item.video.title}`}
                       value={chosen ? chosen.id : ''}
                       onChange={(e) => {
-                        const candidate = item.candidates.find((c) => c.id === e.target.value) ?? null
+                        const candidate = options.find((c) => c.id === e.target.value) ?? null
                         setSelections((prev) => ({ ...prev, [item.item_id]: candidate }))
                       }}
                     >
                       <option value="">Ignorar</option>
-                      {item.candidates.map((c) => (
+                      {options.map((c) => (
                         <option key={c.id} value={c.id}>
-                          {c.name} — {c.artists} ({c.confidence.toFixed(0)}%)
+                          {c.name} — {c.artists}
+                          {c.manual ? ' (manual)' : ` (${c.confidence.toFixed(0)}%)`}
                         </option>
                       ))}
                     </select>
                   )}
                   {!isSimple &&
                     (chosen ? (
-                      <span
-                        className={`badge badge-${chosen.confidence_level}`}
-                        title={CONFIDENCE_LABEL[chosen.confidence_level]}
-                      >
-                        {chosen.confidence.toFixed(0)}%
-                      </span>
+                      chosen.manual ? (
+                        <span className="badge">manual</span>
+                      ) : (
+                        <span
+                          className={`badge badge-${chosen.confidence_level}`}
+                          title={CONFIDENCE_LABEL[chosen.confidence_level]}
+                        >
+                          {chosen.confidence.toFixed(0)}%
+                        </span>
+                      )
                     ) : (
                       <span className="badge">—</span>
                     ))}
+                  {canSearch && (
+                    <div className="playlist-row-manual">
+                      <button
+                        className="link-button"
+                        onClick={() => setSearchingItem(searchingItem === item.item_id ? null : item.item_id)}
+                      >
+                        Buscar manualmente
+                      </button>
+                      {searchingItem === item.item_id && (
+                        <ManualSearch onPick={(candidate) => pickManual(item.item_id, candidate)} />
+                      )}
+                    </div>
+                  )}
                 </li>
               )
             })}
@@ -231,6 +276,7 @@ export default function PlaylistImport() {
             <p>
               Se van a agregar {Object.values(selections).filter(Boolean).length} de {preview.items.length}{' '}
               canciones (el resto quedó en "Ignorar").
+              {preview.next_offset !== null && ' Después de confirmar podés seguir con la siguiente tanda.'}
             </p>
             <button onClick={handleConfirm} disabled={loading}>
               Confirmar cambios

@@ -71,7 +71,9 @@ async def preview_playlist(
     youtube_token: str = Depends(get_valid_youtube_access_token),
 ):
     try:
-        result = await sync_service.analyze_youtube_playlist(spotify_token, youtube_token, body.youtube_url)
+        result = await sync_service.analyze_youtube_playlist(
+            spotify_token, youtube_token, body.youtube_url, body.offset
+        )
     except ValueError:
         raise HTTPException(status_code=400, detail="El enlace no parece ser una URL de playlist de YouTube válida.")
     except youtube_service.PlaylistNotFoundError:
@@ -82,7 +84,8 @@ async def preview_playlist(
         sync_id=sync.id,
         playlist_title=result["title"],
         total_video_count=result["total_video_count"],
-        truncated=result["truncated"],
+        offset=result["offset"],
+        next_offset=result["next_offset"],
         items=[
             PlaylistPreviewItem(item_id=item_id, video=entry["video"], candidates=entry["candidates"])
             for item_id, entry in zip(item_ids, result["items"])

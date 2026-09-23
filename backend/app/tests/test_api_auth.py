@@ -19,6 +19,7 @@ class TestUnauthenticatedAccessIsRejected:
             ("get", "/api/spotify/playlists", None),
             ("post", "/api/spotify/playlists", {"name": "x"}),
             ("post", "/api/spotify/playlists/some-id/tracks", {"track_uri": "spotify:track:x"}),
+            ("get", "/api/spotify/search?q=abc", None),
             ("get", "/api/youtube/login", None),
             ("post", "/api/sync/preview", {"youtube_url": "https://youtube.com/watch?v=x"}),
             ("post", "/api/sync/1/confirm", {"track_id": "x", "track_uri": "x", "track_name": "x", "track_artists": "x", "playlist_id": "x", "playlist_name": "x"}),
@@ -61,3 +62,28 @@ class TestDisconnectIsIdempotentWithoutASession:
         response = client.post(path)
         assert response.status_code == 200
         assert response.json() == {"ok": True}
+
+
+class TestExternalFailuresAreFriendly:
+    """Spotify/YouTube going wrong must surface as a plain 502 message,
+    never a raw 500 or an HTTP code (spec §41)."""
+
+    def test_unexpected_response_shape_maps_to_a_friendly_502(self, monkeypatch):
+        from app.core.errors import ExternalResponseError
+        from app.services import spotify_service
+
+        async def boom(*args, **kwargs):
+            raise ExternalResponseError("shape changed")
+
+        # Auth is exercised elsewhere; bypass it to reach the handler.
+        from app.core.security import get_valid_access_token
+
+        app.dependency_overrides[get_valid_access_token] = lambda: "token"
+        monkeypatch.setattr(spotify_service, "get_user_playlists", boom)
+        try:
+            response = client.get("/api/spotify/playlists")
+        finally:
+            app.dependency_overrides.clear()
+
+        assert response.status_code == 502
+        assert "no esperábamos" in response.json()["detail"]

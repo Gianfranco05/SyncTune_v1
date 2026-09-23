@@ -19,10 +19,14 @@ from app.models import Sync, SyncItem, SyncItemStatus, SyncStatus
 from app.services import matching_service, spotify_service, youtube_service
 
 # Synchronous, request/response processing (no background jobs yet — that's
-# FASE 13). A hard cap keeps a single preview request fast and keeps
-# Spotify search volume reasonable; bigger playlists are truncated with a
-# clear message rather than silently processed to the end.
+# FASE 13). Each preview handles one BATCH of up to MAX_PLAYLIST_ITEMS
+# songs so a request stays fast and Spotify search volume reasonable; a
+# longer playlist is worked through batch by batch via `offset` /
+# `next_offset` (each batch is its own reviewable, confirmable Sync).
 MAX_PLAYLIST_ITEMS = 50
+# Ceiling on how many playlist ids we page through on YouTube (1 quota unit
+# per 50) — far above any personal playlist, but bounded.
+_MAX_PLAYLIST_FETCH = 1000
 _PLAYLIST_MATCH_CONCURRENCY = 5
 
 
@@ -121,14 +125,18 @@ async def confirm_sync(
     return sync
 
 
-async def analyze_youtube_playlist(spotify_token: str, youtube_token: str, url: str) -> dict:
+async def analyze_youtube_playlist(spotify_token: str, youtube_token: str, url: str, offset: int = 0) -> dict:
     """Raises ValueError (bad URL) or youtube_service.PlaylistNotFoundError."""
     playlist_id = youtube_service.extract_playlist_id(url)
     title = await youtube_service.fetch_playlist_title(playlist_id, youtube_token)
 
-    all_video_ids = await youtube_service.fetch_playlist_video_ids(playlist_id, youtube_token)
-    truncated = len(all_video_ids) > MAX_PLAYLIST_ITEMS
-    video_ids = all_video_ids[:MAX_PLAYLIST_ITEMS]
+    all_video_ids = await youtube_service.fetch_playlist_video_ids(
+        playlist_id, youtube_token, max_items=_MAX_PLAYLIST_FETCH
+    )
+    video_ids = all_video_ids[offset : offset + MAX_PLAYLIST_ITEMS]
+    next_offset = offset + MAX_PLAYLIST_ITEMS
+    if next_offset >= len(all_video_ids):
+        next_offset = None
 
     videos = await youtube_service.fetch_videos_bulk(video_ids)
 
@@ -145,7 +153,8 @@ async def analyze_youtube_playlist(spotify_token: str, youtube_token: str, url: 
         "playlist_id": playlist_id,
         "title": title,
         "total_video_count": len(all_video_ids),
-        "truncated": truncated,
+        "offset": offset,
+        "next_offset": next_offset,
         "items": items,
     }
 

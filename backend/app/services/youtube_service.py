@@ -4,6 +4,7 @@ from urllib.parse import parse_qs, urlencode, urlparse
 import httpx
 
 from app.core.config import settings
+from app.core.errors import ExternalResponseError
 
 YOUTUBE_VIDEOS_URL = "https://www.googleapis.com/youtube/v3/videos"
 YOUTUBE_CHANNELS_URL = "https://www.googleapis.com/youtube/v3/channels"
@@ -99,6 +100,18 @@ def extract_playlist_id(url_or_id: str) -> str:
     raise ValueError(f"No se pudo extraer un playlist id de: {url_or_id}")
 
 
+def _parse_video(item: dict) -> dict:
+    try:
+        return {
+            "video_id": item["id"],
+            "title": item["snippet"]["title"],
+            "channel_title": item["snippet"]["channelTitle"],
+            "duration_ms": _parse_duration_ms(item["contentDetails"]["duration"]),
+        }
+    except (KeyError, TypeError) as e:
+        raise ExternalResponseError(f"Unexpected YouTube video shape: {e!r}") from e
+
+
 async def fetch_video_title(video_id: str) -> dict:
     # part="snippet,contentDetails" costs the same 1 quota unit as
     # "snippet" alone — contentDetails.duration feeds the matching engine's
@@ -118,15 +131,9 @@ async def fetch_video_title(video_id: str) -> dict:
     if not items:
         raise VideoNotFoundError(f"Video no encontrado: {video_id}")
 
-    item = items[0]
-    snippet = item["snippet"]
-    duration_ms = _parse_duration_ms(item["contentDetails"]["duration"])
-    return {
-        "video_id": video_id,
-        "title": snippet["title"],
-        "channel_title": snippet["channelTitle"],
-        "duration_ms": duration_ms,
-    }
+    parsed = _parse_video(items[0])
+    parsed["video_id"] = video_id
+    return parsed
 
 
 async def fetch_playlist_title(playlist_id: str, access_token: str) -> str:
@@ -142,7 +149,10 @@ async def fetch_playlist_title(playlist_id: str, access_token: str) -> str:
     items = response.json().get("items", [])
     if not items:
         raise PlaylistNotFoundError(f"Playlist no encontrada: {playlist_id}")
-    return items[0]["snippet"]["title"]
+    try:
+        return items[0]["snippet"]["title"]
+    except (KeyError, TypeError) as e:
+        raise ExternalResponseError(f"Unexpected YouTube playlist shape: {e!r}") from e
 
 
 async def fetch_playlist_video_ids(playlist_id: str, access_token: str, max_items: int = 200) -> list[str]:
@@ -160,7 +170,10 @@ async def fetch_playlist_video_ids(playlist_id: str, access_token: str, max_item
             response.raise_for_status()
             data = response.json()
             for item in data.get("items", []):
-                video_ids.append(item["contentDetails"]["videoId"])
+                try:
+                    video_ids.append(item["contentDetails"]["videoId"])
+                except (KeyError, TypeError) as e:
+                    raise ExternalResponseError(f"Unexpected YouTube playlist item shape: {e!r}") from e
             next_token = data.get("nextPageToken")
             if not next_token:
                 break
@@ -183,15 +196,7 @@ async def fetch_videos_bulk(video_ids: list[str]) -> list[dict]:
             )
             response.raise_for_status()
             for item in response.json().get("items", []):
-                snippet = item["snippet"]
-                results.append(
-                    {
-                        "video_id": item["id"],
-                        "title": snippet["title"],
-                        "channel_title": snippet["channelTitle"],
-                        "duration_ms": _parse_duration_ms(item["contentDetails"]["duration"]),
-                    }
-                )
+                results.append(_parse_video(item))
     return results
 
 

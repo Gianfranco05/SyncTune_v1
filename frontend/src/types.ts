@@ -30,6 +30,9 @@ export interface SpotifyTrackCandidate {
   duration_ms: number
   confidence: number
   confidence_level: ConfidenceLevel
+  // Picked by hand via "Buscar manualmente": the score is not a real match
+  // score, so it is never sent to the backend as a confidence.
+  manual?: boolean
 }
 
 export interface Playlist {
@@ -110,7 +113,8 @@ export interface PlaylistPreviewResponse {
   sync_id: number
   playlist_title: string
   total_video_count: number
-  truncated: boolean
+  offset: number
+  next_offset: number | null
   items: PlaylistPreviewItem[]
 }
 

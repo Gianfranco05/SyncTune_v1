@@ -532,6 +532,19 @@ button:disabled {
   margin: 0.75rem 0;
 }
 
+.playlist-row-manual {
+  grid-column: 1 / -1;
+  font-size: 0.85rem;
+}
+
+.manual-search {
+  margin-top: 0.5rem;
+}
+
+.manual-search-toggle {
+  margin: 0.5rem 0 1rem;
+}
+
 .palette-overlay {
   position: fixed;
   inset: 0;

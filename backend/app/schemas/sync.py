@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.models import SyncItemStatus, SyncStatus
 from app.schemas.spotify import SpotifyTrackCandidate
@@ -55,6 +55,9 @@ class SyncOut(BaseModel):
 
 class PlaylistPreviewRequest(BaseModel):
     youtube_url: str
+    # Start of the batch, for playlists longer than one batch (see
+    # sync_service.MAX_PLAYLIST_ITEMS).
+    offset: int = Field(default=0, ge=0)
 
 
 class PlaylistPreviewItem(BaseModel):
@@ -67,7 +70,8 @@ class PlaylistPreviewResponse(BaseModel):
     sync_id: int
     playlist_title: str
     total_video_count: int
-    truncated: bool
+    offset: int
+    next_offset: int | None
     items: list[PlaylistPreviewItem]
 
 

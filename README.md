@@ -4,7 +4,7 @@ Plataforma para conectar YouTube y Spotify: importar, comparar y sincronizar
 canciones y playlists entre ambos servicios.
 
 **Estado actual**: podés importar una **canción** (flujo principal) o una
-**playlist completa** (hasta 50 canciones) de YouTube a Spotify, de punta a
+**playlist completa** (por tandas de 50) de YouTube a Spotify, de punta a
 punta, con preview, nivel de confianza, detección de duplicados,
 confirmación explícita e historial. Además: conexión con YouTube vía OAuth
 de Google, un Centro de Conexiones, un Dashboard con estadísticas reales, y
@@ -196,11 +196,12 @@ En `/` elegís **🎵 Canción** o **📋 Playlist**.
 **Playlist** (requiere conectar YouTube en `/connections` — OAuth de
 Google, lee incluso playlists privadas):
 1. Pegás una URL de playlist de YouTube.
-2. Se procesan hasta 50 canciones (más grande, se trunca con aviso —
-   playlists más largas necesitan jobs en background, todavía no
-   implementado).
+2. Se procesan de a 50 canciones por tanda: al confirmar una tanda, un
+   botón te deja seguir con las siguientes (cada tanda es su propia
+   sincronización en el historial).
 3. Por cada canción se muestra el mejor candidato de Spotify con su
-   confianza; podés cambiarlo por otro candidato o ignorarla.
+   confianza; podés cambiarlo por otro candidato, ignorarla, o **buscar
+   manualmente** en Spotify si ninguno sirve.
 4. Elegís la playlist destino y confirmás una sola vez para todo el lote —
    duplicados contra la playlist destino se detectan y no se repiten.
 5. Igual que con una canción, la operación queda en `/history`.
@@ -230,7 +231,8 @@ secciones; el ícono de tema en el header cicla Sistema → Claro → Oscuro.
 | POST | `/api/youtube/disconnect` | Borra la conexión guardada |
 | POST | `/api/sync/preview` | Analiza un video de YouTube, devuelve candidatos con confianza |
 | POST | `/api/sync/{id}/confirm` | Confirma un candidato + playlist, con detección de duplicados |
-| POST | `/api/sync/playlist/preview` | Analiza una playlist de YouTube (hasta 50 canciones), candidatos por canción |
+| POST | `/api/sync/playlist/preview` | Analiza una tanda de 50 canciones de una playlist de YouTube (`offset` para las siguientes) |
+| GET | `/api/spotify/search?q=` | Búsqueda libre de tracks en Spotify (para elegir a mano) |
 | POST | `/api/sync/{id}/playlist/confirm` | Confirma las selecciones del lote + playlist, con detección de duplicados |
 | GET | `/api/sync/history` | Historial de sincronizaciones del usuario |
 | GET | `/api/sync/{id}` | Detalle de una sincronización |

@@ -4,6 +4,7 @@ import { confirmSync, createPlaylist, getPlaylists, previewSync, spotifyLoginUrl
 import { CONFIDENCE_LABEL, friendlyError } from '../format'
 import { loadSettings, type SyncSettings } from '../settings'
 import type { Playlist, Sync, SpotifyTrackCandidate, SyncPreviewResponse } from '../types'
+import ManualSearch from './ManualSearch'
 
 export default function SongImport() {
   const [settings] = useState<SyncSettings>(loadSettings)
@@ -17,6 +18,9 @@ export default function SongImport() {
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<Sync | null>(null)
   const autoConfirmedFor = useRef<number | null>(null)
+  // Tracks picked by hand via "Buscar manualmente", listed next to the automatic candidates.
+  const [manualCandidates, setManualCandidates] = useState<SpotifyTrackCandidate[]>([])
+  const [showManual, setShowManual] = useState(false)
 
   const isSimple = settings.displayMode === 'simple'
 
@@ -32,6 +36,8 @@ export default function SongImport() {
     setSelectedCandidate(null)
     setResult(null)
     autoConfirmedFor.current = null
+    setManualCandidates([])
+    setShowManual(false)
     try {
       const data = await previewSync(youtubeUrl.trim())
       setPreview(data)
@@ -69,7 +75,8 @@ export default function SongImport() {
         track_uri: selectedCandidate.uri,
         track_name: selectedCandidate.name,
         track_artists: selectedCandidate.artists,
-        confidence: selectedCandidate.confidence,
+        // A hand-picked track has no real match score to record.
+        confidence: selectedCandidate.manual ? null : selectedCandidate.confidence,
         playlist_id: playlistId,
         playlist_name: playlistName,
       })
@@ -88,7 +95,9 @@ export default function SongImport() {
   useEffect(() => {
     if (settings.safetyMode !== 'rapido') return
     if (!preview || !selectedCandidate || !selectedPlaylistId) return
-    if (selectedCandidate.confidence < settings.fastModeThreshold) return
+    // A hand-picked track never auto-confirms: fast mode trusts the match
+    // score, and a manual pick has none.
+    if (selectedCandidate.manual || selectedCandidate.confidence < settings.fastModeThreshold) return
     if (autoConfirmedFor.current === preview.sync_id) return
     autoConfirmedFor.current = preview.sync_id
     handleConfirm()
@@ -96,6 +105,8 @@ export default function SongImport() {
   }, [selectedPlaylistId, selectedCandidate, preview, settings.safetyMode, settings.fastModeThreshold])
 
   const item = result?.items[0]
+  const allCandidates = preview ? [...preview.candidates, ...manualCandidates] : []
+  const canSearchManually = !isSimple || (preview?.candidates.length ?? 0) === 0
 
   return (
     <div>
@@ -163,7 +174,7 @@ export default function SongImport() {
             )
           ) : (
             <ul className="candidates">
-              {preview.candidates.map((candidate) => (
+              {allCandidates.map((candidate) => (
                 <li
                   key={candidate.id}
                   className={`candidate ${selectedCandidate?.id === candidate.id ? 'selected' : ''}`}
@@ -178,11 +189,28 @@ export default function SongImport() {
                     className={`badge badge-${candidate.confidence_level}`}
                     title={CONFIDENCE_LABEL[candidate.confidence_level]}
                   >
-                    {candidate.confidence.toFixed(0)}%
+                    {candidate.manual ? 'manual' : `${candidate.confidence.toFixed(0)}%`}
                   </span>
                 </li>
               ))}
             </ul>
+          )}
+
+          {canSearchManually && (
+            <div className="manual-search-toggle">
+              <button className="link-button" onClick={() => setShowManual((v) => !v)}>
+                Buscar manualmente
+              </button>
+              {showManual && (
+                <ManualSearch
+                  onPick={(candidate) => {
+                    setManualCandidates((prev) => [...prev, candidate])
+                    setSelectedCandidate(candidate)
+                    setShowManual(false)
+                  }}
+                />
+              )}
+            </div>
           )}
 
           {selectedCandidate && (

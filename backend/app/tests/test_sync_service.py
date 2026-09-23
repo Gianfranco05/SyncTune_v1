@@ -122,3 +122,58 @@ def _async_return(value):
         return value
 
     return _inner
+
+
+class TestAnalyzeYoutubePlaylistBatching:
+    """Long playlists are worked through 50 at a time via offset/next_offset."""
+
+    def _patch(self, monkeypatch, total: int):
+        from app.services import youtube_service
+
+        monkeypatch.setattr(youtube_service, "extract_playlist_id", lambda url: "PL")
+        monkeypatch.setattr(youtube_service, "fetch_playlist_title", _async_return("My Playlist"))
+        monkeypatch.setattr(
+            youtube_service, "fetch_playlist_video_ids", _async_return([f"v{i}" for i in range(total)])
+        )
+
+        async def fake_bulk(video_ids):
+            return [
+                {"video_id": v, "title": f"T {v}", "channel_title": "c", "duration_ms": 1000} for v in video_ids
+            ]
+
+        monkeypatch.setattr(youtube_service, "fetch_videos_bulk", fake_bulk)
+        monkeypatch.setattr(sync_service, "_match_candidates", _async_return([]))
+
+    async def test_first_batch_of_a_long_playlist_points_at_the_next(self, monkeypatch):
+        self._patch(monkeypatch, total=120)
+
+        result = await sync_service.analyze_youtube_playlist("s", "y", "url")
+
+        assert len(result["items"]) == sync_service.MAX_PLAYLIST_ITEMS
+        assert result["offset"] == 0
+        assert result["next_offset"] == 50
+        assert result["total_video_count"] == 120
+
+    async def test_middle_batch_starts_where_asked(self, monkeypatch):
+        self._patch(monkeypatch, total=120)
+
+        result = await sync_service.analyze_youtube_playlist("s", "y", "url", offset=50)
+
+        assert result["items"][0]["video"]["video_id"] == "v50"
+        assert result["next_offset"] == 100
+
+    async def test_last_batch_has_no_next_offset(self, monkeypatch):
+        self._patch(monkeypatch, total=120)
+
+        result = await sync_service.analyze_youtube_playlist("s", "y", "url", offset=100)
+
+        assert [i["video"]["video_id"] for i in result["items"]] == [f"v{n}" for n in range(100, 120)]
+        assert result["next_offset"] is None
+
+    async def test_short_playlist_is_a_single_batch(self, monkeypatch):
+        self._patch(monkeypatch, total=10)
+
+        result = await sync_service.analyze_youtube_playlist("s", "y", "url")
+
+        assert len(result["items"]) == 10
+        assert result["next_offset"] is None

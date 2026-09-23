@@ -552,3 +552,38 @@ pendiente.
 - Probado en el navegador sin errores de consola (la pantalla `/settings`
   en sí no se pudo probar interactivamente todavía — requiere estar
   autenticado, y seguimos sin credenciales reales cargadas).
+
+
+## Mejoras de robustez y límites (2026-09-23)
+
+A pedido: arreglar con código todo lo que se pueda de las limitaciones
+conocidas. Lo que depende de Spotify/Google (Premium, tope de 5 usuarios,
+tokens de Google que vencen a los 7 días) no se puede resolver acá.
+
+- **Playlists de Spotify paginadas**: `get_user_playlists` seguía solo las
+  primeras 50; ahora sigue los links `next` (con tope de 100 páginas).
+- **Respuestas externas validadas**: un 2xx de Spotify/YouTube con una
+  forma inesperada ahora levanta `ExternalResponseError` → 502 con mensaje
+  claro y log del detalle, en vez de un `KeyError` → 500 crudo. El parseo
+  de tracks se unificó en `_parse_track` (antes estaba duplicado en dos
+  lugares). Las entradas de playlist aceptan tanto la clave `track` como
+  `item` (la migración de Spotify de feb 2026 renombró campos de playlist
+  y no pudimos confirmar cuál queda), y se saltean archivos locales,
+  tracks removidos y episodios de podcast.
+- **Playlists de más de 50 canciones**: se procesan por tandas
+  (`offset`/`next_offset`); cada tanda es un Sync propio, revisable y
+  confirmable. Sin jobs en background.
+- **Buscar manualmente** (`GET /api/spotify/search`) en el flujo de una
+  canción y en cada fila de una playlist. Un track elegido a mano se
+  guarda **sin** confianza (no hay score real) y nunca dispara el
+  auto-confirm del modo rápido.
+- **Bug corregido de paso**: la etiqueta "siguientes canciones (X–Y de N)"
+  calculaba mal el rango; lo encontró un test nuevo.
+- **Tests**: backend 78 → 90 (paginación, forma de respuestas, tandas,
+  handler 502, búsqueda protegida); frontend 22 → 32 (flujos completos de
+  `SongImport` y `PlaylistImport`, incluido el auto-confirm del modo
+  rápido y su exclusión para picks manuales, y `ManualSearch`).
+
+Sigue sin verificarse contra la API real de Spotify: las hipótesis sobre
+forma de respuesta ahora fallan de manera controlada, pero la primera
+prueba con credenciales reales sigue siendo lo que las confirma.

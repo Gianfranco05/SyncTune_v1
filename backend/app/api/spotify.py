@@ -2,7 +2,7 @@ import secrets
 from datetime import datetime, timedelta, timezone
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -12,6 +12,7 @@ from app.core.crypto import encrypt
 from app.core.database import get_db
 from app.core.security import get_valid_access_token
 from app.models import Connection, Provider, User
+from app.schemas.playlist import PlaylistTrack
 from app.schemas.spotify import (
     AddTrackRequest,
     CreatePlaylistRequest,
@@ -121,6 +122,19 @@ def disconnect(request: Request, db: Session = Depends(get_db)):
             db.commit()
     request.session.clear()
     return {"ok": True}
+
+
+@router.get("/search", response_model=list[PlaylistTrack])
+async def search(
+    q: str = Query(min_length=1, max_length=200),
+    access_token: str = Depends(get_valid_access_token),
+):
+    """Free-text track search, for picking a match by hand when none of the
+    automatic candidates is right (spec §9: "buscar manualmente")."""
+    query = q.strip()
+    if not query:
+        raise HTTPException(status_code=400, detail="Escribí algo para buscar.")
+    return await spotify_service.search_tracks(access_token, query, limit=10)
 
 
 @router.get("/playlists", response_model=list[Playlist])
