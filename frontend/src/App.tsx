@@ -7,6 +7,7 @@ import History from './pages/History'
 import Connections from './pages/Connections'
 import Dashboard from './pages/Dashboard'
 import PlaylistTools from './pages/PlaylistTools'
+import Settings from './pages/Settings'
 import CommandPalette, { type PaletteAction } from './pages/CommandPalette'
 import './App.css'
 
@@ -104,6 +105,7 @@ function App() {
     { id: 'clean', label: 'Limpiar playlist (duplicados)', run: () => navigate('/playlists') },
     { id: 'history', label: 'Ver historial', run: () => navigate('/history') },
     { id: 'connections', label: 'Conexiones', run: () => navigate('/connections') },
+    { id: 'settings', label: 'Configuración', run: () => navigate('/settings') },
     { id: 'theme', label: 'Cambiar tema', run: cycleTheme },
   ]
 
@@ -120,6 +122,7 @@ function App() {
             <Link to="/playlists">Playlists</Link>
             <Link to="/history">Historial</Link>
             <Link to="/connections">Conexiones</Link>
+            <Link to="/settings">Config</Link>
             <button className="link-button" onClick={cycleTheme} title="Ctrl+K para buscar acciones">
               {THEME_LABEL[theme]}
             </button>
@@ -151,6 +154,7 @@ function App() {
           path="/connections"
           element={me.authenticated ? <Connections spotifyMe={me} onSpotifyChange={setMe} /> : <Home me={me} />}
         />
+        <Route path="/settings" element={me.authenticated ? <Settings /> : <Home me={me} />} />
       </Routes>
     </div>
   )

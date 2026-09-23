@@ -520,3 +520,35 @@ todo lo implementado hasta acá. Encontrados y corregidos:
 No se encontraron problemas de seguridad nuevos (ownership, cifrado de
 tokens y CORS ya se habían revisado en FASE 15). 78/78 tests pasan
 después de los fixes (incluye 2 tests nuevos de regresión).
+
+## FASE 12 (resto) — Modo simple/avanzado y modo seguro/rápido (completada 2026-09-22)
+
+Confirmado con el usuario: **FASE 13 (jobs) y FASE 14 (sync automática/
+bidireccional) quedan salteadas** — no hay un problema real que justifique
+la infraestructura todavía, y bidireccional necesitaría una política de
+conflictos que nadie pidió definir. Documentado como decisión, no como
+pendiente.
+
+### Qué se hizo
+- **`frontend/src/settings.ts`**: preferencias en `localStorage` (como el
+  tema) — no se creó una tabla `user_preferences` en el backend porque es
+  una preferencia de UI por navegador, no algo que necesite sincronizarse
+  entre dispositivos ni ser aplicado del lado del servidor.
+- **Modo simple/avanzado**: toggle de visualización. Simple oculta el % de
+  confianza y la posibilidad de elegir otro candidato (`SongImport.tsx`,
+  `PlaylistImport.tsx`); avanzado es el comportamiento de siempre.
+- **Modo seguro/rápido**: en rápido, una canción individual con confianza
+  ≥ umbral configurable (default 95%) se confirma sola apenas se elige la
+  playlist destino, sin el clic extra de "Confirmar cambios". **Nunca
+  aplica a playlists** — se mantienen siempre con confirmación explícita,
+  seas cual sea el modo, porque el propio spec (§21) dice que las
+  operaciones grandes no deben perder ese paso de seguridad.
+- Nueva página `/settings`, accesible desde el nav y desde el command
+  palette (Ctrl+K).
+
+### Verificado
+- 78/78 tests de backend siguen pasando (este cambio es 100% frontend).
+- Frontend tipa limpio.
+- Probado en el navegador sin errores de consola (la pantalla `/settings`
+  en sí no se pudo probar interactivamente todavía — requiere estar
+  autenticado, y seguimos sin credenciales reales cargadas).

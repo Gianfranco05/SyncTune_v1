@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { confirmSync, createPlaylist, getPlaylists, previewSync, spotifyLoginUrl } from '../api'
 import { CONFIDENCE_LABEL, friendlyError } from '../format'
+import { loadSettings, type SyncSettings } from '../settings'
 import type { Playlist, Sync, SpotifyTrackCandidate, SyncPreviewResponse } from '../types'
 
 export default function SongImport() {
+  const [settings] = useState<SyncSettings>(loadSettings)
   const [youtubeUrl, setYoutubeUrl] = useState('')
   const [preview, setPreview] = useState<SyncPreviewResponse | null>(null)
   const [selectedCandidate, setSelectedCandidate] = useState<SpotifyTrackCandidate | null>(null)
@@ -14,6 +16,9 @@ export default function SongImport() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<Sync | null>(null)
+  const autoConfirmedFor = useRef<number | null>(null)
+
+  const isSimple = settings.displayMode === 'simple'
 
   useEffect(() => {
     getPlaylists().then(setPlaylists).catch(() => setPlaylists([]))
@@ -26,6 +31,7 @@ export default function SongImport() {
     setPreview(null)
     setSelectedCandidate(null)
     setResult(null)
+    autoConfirmedFor.current = null
     try {
       const data = await previewSync(youtubeUrl.trim())
       setPreview(data)
@@ -74,6 +80,20 @@ export default function SongImport() {
       setLoading(false)
     }
   }
+
+  // Modo rápido (spec §22): once a destination playlist is picked, a
+  // high-confidence single-song match confirms itself instead of waiting
+  // for the extra click. Never applies to playlists (spec §21 — those are
+  // a "big operation" and always need explicit confirmation).
+  useEffect(() => {
+    if (settings.safetyMode !== 'rapido') return
+    if (!preview || !selectedCandidate || !selectedPlaylistId) return
+    if (selectedCandidate.confidence < settings.fastModeThreshold) return
+    if (autoConfirmedFor.current === preview.sync_id) return
+    autoConfirmedFor.current = preview.sync_id
+    handleConfirm()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPlaylistId, selectedCandidate, preview, settings.safetyMode, settings.fastModeThreshold])
 
   const item = result?.items[0]
 
@@ -131,27 +151,39 @@ export default function SongImport() {
             </div>
           )}
 
-          <ul className="candidates">
-            {preview.candidates.map((candidate) => (
-              <li
-                key={candidate.id}
-                className={`candidate ${selectedCandidate?.id === candidate.id ? 'selected' : ''}`}
-                onClick={() => setSelectedCandidate(candidate)}
-              >
-                {candidate.album_image && <img src={candidate.album_image} alt="" />}
+          {isSimple ? (
+            selectedCandidate && (
+              <div className="candidate selected">
+                {selectedCandidate.album_image && <img src={selectedCandidate.album_image} alt="" />}
                 <div className="candidate-info">
-                  <div className="candidate-name">{candidate.name}</div>
-                  <div className="candidate-artists">{candidate.artists}</div>
+                  <div className="candidate-name">{selectedCandidate.name}</div>
+                  <div className="candidate-artists">{selectedCandidate.artists}</div>
                 </div>
-                <span
-                  className={`badge badge-${candidate.confidence_level}`}
-                  title={CONFIDENCE_LABEL[candidate.confidence_level]}
+              </div>
+            )
+          ) : (
+            <ul className="candidates">
+              {preview.candidates.map((candidate) => (
+                <li
+                  key={candidate.id}
+                  className={`candidate ${selectedCandidate?.id === candidate.id ? 'selected' : ''}`}
+                  onClick={() => setSelectedCandidate(candidate)}
                 >
-                  {candidate.confidence.toFixed(0)}%
-                </span>
-              </li>
-            ))}
-          </ul>
+                  {candidate.album_image && <img src={candidate.album_image} alt="" />}
+                  <div className="candidate-info">
+                    <div className="candidate-name">{candidate.name}</div>
+                    <div className="candidate-artists">{candidate.artists}</div>
+                  </div>
+                  <span
+                    className={`badge badge-${candidate.confidence_level}`}
+                    title={CONFIDENCE_LABEL[candidate.confidence_level]}
+                  >
+                    {candidate.confidence.toFixed(0)}%
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
 
           {selectedCandidate && (
             <div className="playlist-picker">

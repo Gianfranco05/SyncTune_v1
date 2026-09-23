@@ -10,12 +10,15 @@ import {
   youtubeLoginUrl,
 } from '../api'
 import { CONFIDENCE_LABEL, friendlyError } from '../format'
+import { loadSettings, type SyncSettings } from '../settings'
 import type { Playlist, PlaylistPreviewResponse, Sync, SpotifyTrackCandidate } from '../types'
 
 // item_id -> chosen candidate, or null to skip that song.
 type Selections = Record<number, SpotifyTrackCandidate | null>
 
 export default function PlaylistImport() {
+  const [settings] = useState<SyncSettings>(loadSettings)
+  const isSimple = settings.displayMode === 'simple'
   const [youtubeConnected, setYoutubeConnected] = useState<boolean | null>(null)
   const [youtubeUrl, setYoutubeUrl] = useState('')
   const [preview, setPreview] = useState<PlaylistPreviewResponse | null>(null)
@@ -172,30 +175,35 @@ export default function PlaylistImport() {
               return (
                 <li key={item.item_id} className="playlist-row">
                   <div className="playlist-row-source">{item.video.title}</div>
-                  <select
-                    value={chosen ? chosen.id : ''}
-                    onChange={(e) => {
-                      const candidate = item.candidates.find((c) => c.id === e.target.value) ?? null
-                      setSelections((prev) => ({ ...prev, [item.item_id]: candidate }))
-                    }}
-                  >
-                    <option value="">Ignorar</option>
-                    {item.candidates.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name} — {c.artists} ({c.confidence.toFixed(0)}%)
-                      </option>
-                    ))}
-                  </select>
-                  {chosen ? (
-                    <span
-                      className={`badge badge-${chosen.confidence_level}`}
-                      title={CONFIDENCE_LABEL[chosen.confidence_level]}
-                    >
-                      {chosen.confidence.toFixed(0)}%
-                    </span>
+                  {isSimple ? (
+                    <div className="playlist-row-source">{chosen ? `${chosen.name} — ${chosen.artists}` : 'Ignorar'}</div>
                   ) : (
-                    <span className="badge">—</span>
+                    <select
+                      value={chosen ? chosen.id : ''}
+                      onChange={(e) => {
+                        const candidate = item.candidates.find((c) => c.id === e.target.value) ?? null
+                        setSelections((prev) => ({ ...prev, [item.item_id]: candidate }))
+                      }}
+                    >
+                      <option value="">Ignorar</option>
+                      {item.candidates.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name} — {c.artists} ({c.confidence.toFixed(0)}%)
+                        </option>
+                      ))}
+                    </select>
                   )}
+                  {!isSimple &&
+                    (chosen ? (
+                      <span
+                        className={`badge badge-${chosen.confidence_level}`}
+                        title={CONFIDENCE_LABEL[chosen.confidence_level]}
+                      >
+                        {chosen.confidence.toFixed(0)}%
+                      </span>
+                    ) : (
+                      <span className="badge">—</span>
+                    ))}
                 </li>
               )
             })}
