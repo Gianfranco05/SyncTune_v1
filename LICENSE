@@ -1,0 +1,284 @@
+LICENCIA SYNCTUNE DE USO PERSONAL, EDUCATIVO Y DE INVESTIGACIÓN
+(Código disponible, uso no comercial, sin redistribución)
+
+Copyright (c) 2026 Gianfranco. Todos los derechos reservados, salvo los que
+esta licencia concede expresamente.
+
+Esta NO es una licencia de software libre ni de código abierto. El código
+puede leerse, ejecutarse y modificarse en los términos de abajo, pero no
+puede redistribuirse, venderse ni usarse comercialmente sin autorización
+expresa y por escrito del Autor.
+
+Al descargar, copiar, ejecutar o modificar el Software, Usted acepta estos
+términos. Si no está de acuerdo, no use el Software.
+
+
+1. DEFINICIONES
+
+1.1. "Software": este proyecto (SyncTune) en su totalidad: el código fuente
+     original del Autor, la documentación, los archivos de configuración, los
+     scripts, los tests, las migraciones y cualquier otro material propio del
+     proyecto incluido en este repositorio.
+
+1.2. "Autor": Gianfranco, titular de los derechos de autor del Software.
+
+1.3. "Usted": la persona física que ejerce los permisos de esta licencia.
+
+1.4. "Uso Personal": uso del Software por Usted, individualmente, para sus
+     propios fines y con sus propias cuentas y datos. No incluye poner el
+     Software a disposición de otras personas (ver sección 5.4).
+
+1.5. "Uso Educativo o de Investigación": estudiar el Software, aprender de
+     él, analizarlo o usarlo como referencia en una actividad de formación o
+     investigación propia, sin fines comerciales.
+
+1.6. "Uso Comercial": cualquier uso del Software o de una Obra Derivada que
+     esté dirigido a obtener, directa o indirectamente, una ventaja o
+     compensación económica, o que se realice dentro de una actividad
+     comercial o profesional. Incluye, entre otros: venderlo, alquilarlo o
+     licenciarlo a cambio de dinero; incorporarlo en un producto o servicio
+     comercial; ofrecerlo como servicio (SaaS) pago o gratuito con fines
+     comerciales; monetizarlo con publicidad, suscripciones o venta de datos;
+     usarlo para operar un negocio o para las tareas de una empresa u
+     organización con fines de lucro; y usarlo para prestar servicios a
+     clientes.
+
+1.7. "Distribuir": entregar, enviar, publicar o poner a disposición de
+     cualquier persona distinta de Usted una copia del Software o de una Obra
+     Derivada, total o parcial, por cualquier medio o formato. Incluye, entre
+     otros: repositorios públicos o compartidos, forks públicos, archivos
+     comprimidos, correo electrónico, mensajería, servicios de intercambio de
+     archivos, medios físicos, registros de paquetes o de imágenes de
+     contenedores, y cualquier otra forma de publicación.
+
+1.8. "Obra Derivada": cualquier modificación, adaptación, traducción o versión
+     basada en el Software, o que incorpore una parte sustancial de él.
+
+1.9. "Tercero": cualquier persona física o jurídica distinta de Usted y del
+     Autor.
+
+
+2. PERMISOS CONCEDIDOS
+
+El Autor le concede una licencia personal, no exclusiva, intransferible,
+gratuita y revocable (según la sección 10), limitada a los fines descriptos
+en esta sección. Usted puede:
+
+2.1. Ver y leer el código fuente del Software.
+
+2.2. Descargar el Software y hacer las copias locales necesarias para
+     ejercer los demás permisos de esta sección, incluidas copias de respaldo
+     y repositorios privados de Git a los que solo Usted tenga acceso.
+
+2.3. Ejecutar el Software localmente, para Uso Personal, Educativo o de
+     Investigación.
+
+2.4. Modificar el código fuente y crear Obras Derivadas, únicamente para Uso
+     Personal, Educativo o de Investigación (ver sección 6).
+
+2.5. Estudiar el funcionamiento del Software y usarlo como referencia
+     educativa. Puede citar fragmentos breves en trabajos académicos,
+     apuntes o análisis críticos, siempre indicando la autoría del Autor y sin
+     que la cita reproduzca una porción sustancial del Software.
+
+Todo lo que esta licencia no concede expresamente queda reservado por el
+Autor.
+
+
+3. RESTRICCIONES
+
+Sin autorización expresa y por escrito del Autor (sección 8), Usted NO puede:
+
+3.1. Vender el Software o una Obra Derivada, ni cobrar por su entrega, acceso
+     o uso.
+
+3.2. Distribuir copias del Software o de una Obra Derivada a Terceros.
+
+3.3. Redistribuir el código fuente públicamente, ni en forma privada a
+     Terceros.
+
+3.4. Publicar forks, copias o versiones modificadas del Software como
+     proyecto independiente, en cualquier plataforma, para uso o consulta de
+     Terceros.
+
+3.5. Incorporar el Software o parte de él en productos o servicios
+     comerciales, propios o ajenos.
+
+3.6. Ofrecer el Software o una Obra Derivada como SaaS, servicio pago o
+     producto comercial.
+
+3.7. Realizar cualquier Uso Comercial del Software o de sus modificaciones.
+
+3.8. Sublicenciar el Software o una Obra Derivada, ni conceder a Terceros
+     derechos sobre ellos.
+
+3.9. Presentar, registrar o declarar el Software, o una Obra Derivada, como
+     obra propia, ni atribuirse su autoría original.
+
+3.10. Eliminar, ocultar o modificar los avisos de copyright y de licencia
+      (ver sección 7).
+
+3.11. Ceder o transferir esta licencia a un Tercero.
+
+
+4. USO COMERCIAL
+
+4.1. Todo Uso Comercial está prohibido, salvo autorización expresa y por
+     escrito del Autor, que este puede otorgar, negar o condicionar a su sola
+     discreción.
+
+4.2. Que el Software se use sin cobrar no lo vuelve un uso permitido si
+     encuadra en la definición de Uso Comercial de la sección 1.6.
+
+4.3. Usar el Software dentro de una empresa, o como parte de un trabajo
+     remunerado, es Uso Comercial, aunque Usted no cobre específicamente por
+     el Software.
+
+
+5. DISTRIBUCIÓN Y REDISTRIBUCIÓN
+
+5.1. Usted no puede Distribuir el Software ni ninguna Obra Derivada, ni
+     siquiera sin cargo, ni siquiera con las modificaciones que Usted haya
+     hecho, ni siquiera con fines educativos o de investigación.
+
+5.2. Esta licencia no se transmite con las copias: quien no haya recibido el
+     Software directamente del Autor no tiene ningún derecho sobre él en
+     virtud de esta licencia. Si Usted obtuvo una copia de un Tercero que no
+     era el Autor, esa copia no está autorizada.
+
+5.3. Los servicios técnicos que actúan por cuenta de Usted (por ejemplo, un
+     repositorio privado de respaldo o un servicio de hosting privado al que
+     solo Usted tenga acceso) no cuentan como Terceros a estos efectos, siempre
+     que no den acceso al Software a otras personas.
+
+5.4. Usted no puede poner en funcionamiento el Software, ni una Obra
+     Derivada, para que lo usen otras personas (por ejemplo, una instancia
+     alojada para amigos, clientes, compañeros o el público), sea o no a
+     cambio de dinero.
+
+5.5. Las funciones de una plataforma de alojamiento de código (como "fork" o
+     "clonar") no amplían los permisos de esta licencia. Si el Autor publica
+     el Software en una plataforma, lo hace bajo los términos de esa
+     plataforma en lo que estos exijan estrictamente, pero ello no concede a
+     nadie más derechos que los de esta licencia.
+
+
+6. MODIFICACIONES
+
+6.1. Usted puede modificar el Software y crear Obras Derivadas únicamente
+     para Uso Personal, Educativo o de Investigación.
+
+6.2. Modificar el Software NO le otorga permiso para Distribuir la Obra
+     Derivada a Terceros, publicarla, venderla ni usarla comercialmente. Las
+     restricciones de las secciones 3, 4 y 5 se aplican a la Obra Derivada
+     de la misma forma que al Software original.
+
+6.3. Toda Obra Derivada queda sujeta a esta licencia y debe conservar sus
+     avisos. Sus modificaciones no le otorgan derechos sobre el Software
+     original, que sigue perteneciendo al Autor.
+
+6.4. Usted no está obligado a compartir sus modificaciones con el Autor. Si
+     decide enviarle voluntariamente una modificación o contribución, Usted
+     conserva su autoría sobre lo que haya creado, y concede al Autor una
+     licencia perpetua, mundial, gratuita, no exclusiva e irrevocable para
+     usarla, modificarla y distribuirla como parte del Software, incluso con
+     fines comerciales.
+
+
+7. ATRIBUCIÓN Y COPYRIGHT
+
+7.1. El Software es obra del Autor. Usted debe conservar, en todas las copias
+     y en toda Obra Derivada, el aviso "Copyright (c) 2026 Gianfranco" y este
+     archivo de licencia, sin alterarlos.
+
+7.2. Usted no puede eliminar ni modificar avisos de copyright o de licencia
+     presentes en el Software, ni presentarlo como propio.
+
+7.3. Esta licencia no le otorga derechos sobre el nombre "SyncTune" ni sobre
+     el nombre o la imagen del Autor, más allá de la referencia necesaria para
+     cumplir con la sección 7.1.
+
+
+8. AUTORIZACIÓN EXPRESA DEL AUTOR
+
+8.1. Cualquier uso, distribución o modificación no permitido por esta
+     licencia requiere una autorización previa, expresa y por escrito del
+     Autor. El silencio, la tolerancia o la falta de reclamo del Autor no
+     constituyen autorización.
+
+8.2. Para solicitar una autorización (por ejemplo, para uso comercial o para
+     distribuir el Software a Terceros), contacte al Autor por los medios de
+     contacto publicados en su perfil de la plataforma donde se aloje este
+     repositorio.
+
+8.3. Una autorización concedida para un caso no se extiende a otros casos, ni
+     a otras personas, ni a otras versiones, salvo que el Autor lo indique.
+
+
+9. COMPONENTES Y SERVICIOS DE TERCEROS
+
+9.1. Esta licencia cubre únicamente el material original del Autor. Las
+     bibliotecas y herramientas de terceros que el Software utiliza (por
+     ejemplo, React, FastAPI, SQLAlchemy y otras) se rigen por sus propias
+     licencias, que Usted debe cumplir. Nada de esta licencia modifica esas
+     licencias.
+
+9.2. El Software se conecta con servicios de terceros (por ejemplo, Spotify y
+     Google/YouTube). Usted es el único responsable de cumplir los términos
+     de uso de esos servicios y de obtener sus propias credenciales. Esta
+     licencia no le da derecho alguno sobre esos servicios.
+
+
+10. DURACIÓN Y TERMINACIÓN
+
+10.1. Esta licencia rige mientras Usted cumpla todos sus términos.
+
+10.2. Si Usted incumple cualquier término, esta licencia termina
+      automáticamente y sin necesidad de aviso. Debe entonces dejar de usar
+      el Software y eliminar todas las copias y Obras Derivadas que tenga en
+      su poder.
+
+10.3. La terminación no afecta los derechos del Autor de reclamar por el
+      incumplimiento ni de exigir la reparación de los daños causados. Las
+      secciones 3, 4, 5, 6.2, 7, 11, 12 y 13 subsisten después de la
+      terminación.
+
+
+11. DESCARGO DE GARANTÍAS
+
+EL SOFTWARE SE ENTREGA "TAL CUAL" ("AS IS"), SIN GARANTÍA DE NINGÚN TIPO,
+EXPRESA NI IMPLÍCITA, INCLUIDAS, ENTRE OTRAS, LAS GARANTÍAS DE
+COMERCIABILIDAD, IDONEIDAD PARA UN FIN DETERMINADO, NO INFRACCIÓN, Y
+FUNCIONAMIENTO SIN ERRORES O ININTERRUMPIDO. EL AUTOR NO GARANTIZA QUE EL
+SOFTWARE SEA COMPATIBLE CON LOS SERVICIOS DE TERCEROS NI QUE CONTINÚE
+FUNCIONANDO SI ESOS SERVICIOS CAMBIAN SUS CONDICIONES O SU API.
+
+
+12. LIMITACIÓN DE RESPONSABILIDAD
+
+EN LA MEDIDA MÁXIMA PERMITIDA POR LA LEY APLICABLE, EL AUTOR NO SERÁ
+RESPONSABLE POR DAÑOS DIRECTOS, INDIRECTOS, INCIDENTALES, ESPECIALES,
+CONSECUENTES O DE CUALQUIER OTRO TIPO (INCLUIDA LA PÉRDIDA DE DATOS, DE
+CUENTAS O DE ACCESO A SERVICIOS DE TERCEROS) QUE SURJAN DEL USO O DE LA
+IMPOSIBILIDAD DE USAR EL SOFTWARE, AUN SI SE LO HUBIERA ADVERTIDO DE LA
+POSIBILIDAD DE TALES DAÑOS.
+
+
+13. DISPOSICIONES GENERALES
+
+13.1. Reserva de derechos: todo derecho no concedido expresamente en esta
+      licencia queda reservado por el Autor.
+
+13.2. Divisibilidad: si una disposición de esta licencia se declara inválida o
+      inaplicable, las demás siguen vigentes y la disposición afectada se
+      aplicará en la máxima medida permitida.
+
+13.3. Sin renuncia: que el Autor no exija el cumplimiento de un término no
+      implica renunciar a hacerlo después.
+
+13.4. Acuerdo completo: esta licencia es el acuerdo completo entre Usted y el
+      Autor respecto del Software y reemplaza cualquier otro anterior sobre
+      el mismo tema.
+
+13.5. Versión autoritativa: esta licencia está redactada en español y esa es
+      su versión autoritativa. Cualquier traducción es solo informativa.

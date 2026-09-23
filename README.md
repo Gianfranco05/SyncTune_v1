@@ -266,3 +266,25 @@ frontend) — ver "Opción B" arriba. `.github/workflows/ci.yml` corre los
 tests de backend y el build de frontend en cada push/PR; todavía no puede
 ejecutarse porque el proyecto no tiene un remoto de GitHub configurado
 (el repo Git local ya existe, `git init`, sin commits todavía).
+
+## License
+
+Copyright (c) 2026 Gianfranco. Este proyecto se publica bajo una **licencia
+personalizada** (ver [LICENSE](LICENSE)), que **no** es de código abierto:
+
+- **Permitido**: ver el código, descargarlo, ejecutarlo localmente y
+  modificarlo para fines **personales, educativos o de investigación**, y
+  usarlo como referencia para estudiar cómo funciona.
+- **No permitido sin autorización expresa del autor**: redistribuir el
+  código o copias del proyecto (incluidos forks o versiones modificadas
+  publicadas para terceros), venderlo, sublicenciarlo, ofrecerlo como
+  servicio (SaaS) o utilizarlo con fines comerciales, presentarlo como propio,
+  o eliminar los avisos de copyright y de licencia.
+- Modificar el código para uso propio **no** da permiso para distribuir esas
+  modificaciones ni para usarlas comercialmente.
+- Para uso comercial o para distribuir el proyecto a terceros, hay que
+  contactar al autor y obtener su autorización por escrito.
+
+Las bibliotecas de terceros que usa el proyecto (React, FastAPI, etc.) se
+rigen por sus propias licencias; esta licencia cubre solo el código original
+del autor.
