@@ -18,6 +18,28 @@ class TestCleanTitleAndGuess:
         cleaned = m.clean_title("Imagine Dragons - Believer Lyrics")
         assert cleaned == "Imagine Dragons - Believer"
 
+    def test_tag_that_empties_its_brackets_leaves_no_dangling_pair(self):
+        # Regression: "(Official Video Remastered)" lost both words and used
+        # to end as "Queen - Bohemian Rhapsody ( )".
+        cleaned = m.clean_title("Queen - Bohemian Rhapsody (Official Video Remastered)")
+        assert cleaned == "Queen - Bohemian Rhapsody"
+
+    def test_bracket_padding_left_by_a_removed_tag_is_tidied(self):
+        assert m.clean_title("Queen - Bohemian Rhapsody (Remastered 2011)") == "Queen - Bohemian Rhapsody (2011)"
+
+    def test_empty_square_brackets_are_dropped_too(self):
+        assert m.clean_title("Artist - Song [Official Video HD]") == "Artist - Song"
+
+    def test_strips_bare_letra(self):
+        # Regression: only "(letra)" / "[letra]" were handled, not the bare word.
+        assert m.clean_title("Soda Stereo - De Musica Ligera letra") == "Soda Stereo - De Musica Ligera"
+
+    def test_strips_bare_con_letra_as_a_whole_phrase(self):
+        assert m.clean_title("Soda Stereo - De Musica Ligera con letra") == "Soda Stereo - De Musica Ligera"
+
+    def test_letra_inside_a_longer_word_is_left_alone(self):
+        assert m.clean_title("Artist - Letras Perdidas") == "Artist - Letras Perdidas"
+
     def test_guess_artist_track_splits_on_dash(self):
         guess = m.guess_artist_track("The Weeknd - Blinding Lights")
         assert guess == {"artist": "The Weeknd", "track": "Blinding Lights"}

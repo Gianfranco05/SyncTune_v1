@@ -52,6 +52,10 @@ _NOISE_PATTERNS = [
     # stripping "Remastered" here doesn't lose the version signal.
     r"\bremastered\b",
     r"\blyrics\b",
+    # Spanish equivalents, bare. "con letra" must come before "letra" so the
+    # whole phrase goes, not just its tail.
+    r"\bcon\s+letra\b",
+    r"\bletra\b",
     r"\b4k\b",
     r"\bhd\b",
 ]
@@ -64,6 +68,13 @@ _SEPARATORS = [" - ", " – ", " — ", " | "]
 
 def clean_title(raw_title: str) -> str:
     cleaned = _NOISE_RE.sub("", raw_title)
+    # Removing a tag can leave its brackets behind: "(Official Video
+    # Remastered)" loses both words and used to end as "( )", and
+    # "(Remastered 2011)" as "( 2011)". Drop now-empty pairs and the padding
+    # inside the ones that still hold something.
+    cleaned = re.sub(r"[\(\[]\s*[\)\]]", "", cleaned)
+    cleaned = re.sub(r"([\(\[])\s+", r"\1", cleaned)
+    cleaned = re.sub(r"\s+([\)\]])", r"\1", cleaned)
     cleaned = re.sub(r"\s{2,}", " ", cleaned)
     cleaned = cleaned.strip(" -–—|\t")
     return cleaned.strip()
