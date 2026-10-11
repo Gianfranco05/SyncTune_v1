@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, Route, Routes, useNavigate } from 'react-router-dom'
+import { Link, NavLink, Route, Routes, useNavigate } from 'react-router-dom'
 import { getSpotifyMe, spotifyLogout } from './api'
 import type { SpotifyMe } from './types'
 import Home from './pages/Home'
@@ -94,7 +94,7 @@ function App() {
   }
 
   if (me === null) {
-    return <div className="container">Cargando...</div>
+    return <div className="container loading">Cargando...</div>
   }
 
   const paletteActions: PaletteAction[] = [
@@ -113,31 +113,52 @@ function App() {
     <div className="container">
       <header className="header">
         <Link to="/" className="brand">
+          <span className="brand-mark" aria-hidden="true">
+            ♪
+          </span>
           SyncTune
         </Link>
         {me.authenticated && (
-          <nav className="nav">
-            <Link to="/dashboard">Dashboard</Link>
-            <Link to="/">Sincronizar</Link>
-            <Link to="/playlists">Playlists</Link>
-            <Link to="/history">Historial</Link>
-            <Link to="/connections">Conexiones</Link>
-            <Link to="/settings">Config</Link>
-            <button className="link-button" onClick={cycleTheme} title="Ctrl+K para buscar acciones">
-              {THEME_LABEL[theme]}
-            </button>
-            <span>{me.display_name ?? me.id}</span>
-            <button className="link-button" onClick={handleLogout}>
-              Cerrar sesión
-            </button>
-          </nav>
+          <>
+            <nav className="nav">
+              <NavLink to="/dashboard" className="nav-link">
+                Dashboard
+              </NavLink>
+              <NavLink to="/" end className="nav-link">
+                Sincronizar
+              </NavLink>
+              <NavLink to="/playlists" className="nav-link">
+                Playlists
+              </NavLink>
+              <NavLink to="/history" className="nav-link">
+                Historial
+              </NavLink>
+              <NavLink to="/connections" className="nav-link">
+                Conexiones
+              </NavLink>
+              <NavLink to="/settings" className="nav-link">
+                Config
+              </NavLink>
+            </nav>
+            <div className="header-actions">
+              <button className="button-ghost" onClick={cycleTheme} title="Cambiar tema (Ctrl+K para más acciones)">
+                {THEME_LABEL[theme]}
+              </button>
+              <span className="user-chip" title={me.display_name ?? me.id ?? undefined}>
+                {me.display_name ?? me.id}
+              </span>
+              <button className="button-ghost" onClick={handleLogout}>
+                Cerrar sesión
+              </button>
+            </div>
+          </>
         )}
       </header>
 
       {paletteOpen && <CommandPalette actions={paletteActions} onClose={() => setPaletteOpen(false)} />}
 
       {oauthError && (
-        <p className="error">
+        <p className="error" role="alert">
           {oauthError}{' '}
           <button className="link-button" onClick={() => setOauthError(null)}>
             Cerrar

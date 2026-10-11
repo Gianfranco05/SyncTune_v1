@@ -155,6 +155,44 @@ async def fetch_playlist_title(playlist_id: str, access_token: str) -> str:
         raise ExternalResponseError(f"Unexpected YouTube playlist shape: {e!r}") from e
 
 
+_MAX_MY_PLAYLIST_PAGES = 10
+
+
+async def fetch_my_playlists(access_token: str) -> list[dict]:
+    """The connected account's own playlists (`mine=true`), so the UI can
+    offer them as a pick-list instead of making the user paste a URL.
+    Needs the user's OAuth token — the API key can't see an account's
+    playlists. 1 quota unit per page of 50."""
+    playlists: list[dict] = []
+    params: dict = {"part": "snippet,contentDetails", "mine": "true", "maxResults": 50}
+    async with httpx.AsyncClient() as client:
+        for _ in range(_MAX_MY_PLAYLIST_PAGES):
+            response = await client.get(
+                YOUTUBE_PLAYLISTS_URL, params=params, headers={"Authorization": f"Bearer {access_token}"}
+            )
+            response.raise_for_status()
+            data = response.json()
+            for item in data.get("items", []):
+                try:
+                    thumbnails = item["snippet"].get("thumbnails") or {}
+                    thumb = thumbnails.get("default") or thumbnails.get("medium") or {}
+                    playlists.append(
+                        {
+                            "id": item["id"],
+                            "title": item["snippet"]["title"],
+                            "video_count": (item.get("contentDetails") or {}).get("itemCount"),
+                            "thumbnail": thumb.get("url"),
+                        }
+                    )
+                except (KeyError, TypeError, AttributeError) as e:
+                    raise ExternalResponseError(f"Unexpected YouTube playlist shape: {e!r}") from e
+            next_token = data.get("nextPageToken")
+            if not next_token:
+                break
+            params = {**params, "pageToken": next_token}
+    return playlists
+
+
 async def fetch_playlist_video_ids(playlist_id: str, access_token: str, max_items: int = 200) -> list[str]:
     """`part=contentDetails` only — 1 quota unit per page of 50, and we
     don't need snippet/status here: fetch_videos_bulk (API key, videos.list)

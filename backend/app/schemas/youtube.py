@@ -7,6 +7,13 @@ class YoutubeMe(BaseModel):
     display_name: str | None = None
 
 
+class YoutubePlaylist(BaseModel):
+    id: str
+    title: str
+    video_count: int | None = None
+    thumbnail: str | None = None
+
+
 class YoutubeVideo(BaseModel):
     video_id: str
     title: str

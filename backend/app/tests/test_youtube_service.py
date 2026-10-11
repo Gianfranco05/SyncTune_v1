@@ -73,3 +73,46 @@ class TestParseDurationMs:
     )
     def test_parses_common_durations(self, iso, expected_ms):
         assert yt._parse_duration_ms(iso) == expected_ms
+
+
+class TestFetchMyPlaylists:
+    @pytest.mark.anyio
+    async def test_follows_pagination_and_maps_fields(self, monkeypatch):
+        import httpx
+
+        real = httpx.AsyncClient
+
+        def handler(request):
+            if request.url.params.get("pageToken") == "p2":
+                return httpx.Response(200, json={"items": [{"id": "B", "snippet": {"title": "Dos"}}]})
+            return httpx.Response(
+                200,
+                json={
+                    "items": [
+                        {
+                            "id": "A",
+                            "snippet": {"title": "Uno", "thumbnails": {"default": {"url": "http://t/1.jpg"}}},
+                            "contentDetails": {"itemCount": 7},
+                        }
+                    ],
+                    "nextPageToken": "p2",
+                },
+            )
+
+        monkeypatch.setattr(httpx, "AsyncClient", lambda **kw: real(transport=httpx.MockTransport(handler), **kw))
+        result = await yt.fetch_my_playlists("tok")
+        assert result == [
+            {"id": "A", "title": "Uno", "video_count": 7, "thumbnail": "http://t/1.jpg"},
+            {"id": "B", "title": "Dos", "video_count": None, "thumbnail": None},
+        ]
+
+    @pytest.mark.anyio
+    async def test_unexpected_shape_raises_external_response_error(self, monkeypatch):
+        import httpx
+        from app.core.errors import ExternalResponseError
+
+        real = httpx.AsyncClient
+        handler = lambda request: httpx.Response(200, json={"items": [{"snippet": {}}]})
+        monkeypatch.setattr(httpx, "AsyncClient", lambda **kw: real(transport=httpx.MockTransport(handler), **kw))
+        with pytest.raises(ExternalResponseError):
+            await yt.fetch_my_playlists("tok")

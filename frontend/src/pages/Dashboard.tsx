@@ -24,7 +24,7 @@ export default function Dashboard() {
   }, [])
 
   if (error) return <p className="error">{error}</p>
-  if (data === null) return <p>Cargando...</p>
+  if (data === null) return <p className="loading">Cargando...</p>
 
   const { stats, recent } = data
 

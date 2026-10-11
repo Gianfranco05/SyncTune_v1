@@ -13,18 +13,27 @@ function ConnectionCard({
   connectHref?: string
   onDisconnect: () => void
 }) {
+  const head = (
+    <div className="connection-card-head">
+      <span className={`connection-icon connection-icon-${name.toLowerCase()}`} aria-hidden="true">
+        {name === 'Spotify' ? '♪' : '▶'}
+      </span>
+      <h3>{name}</h3>
+    </div>
+  )
+
   if (connection === null) {
     return (
       <div className="connection-card">
-        <h3>{name}</h3>
-        <p>Cargando...</p>
+        {head}
+        <p className="connection-account">Cargando...</p>
       </div>
     )
   }
 
   return (
     <div className="connection-card">
-      <h3>{name}</h3>
+      {head}
       {connection.authenticated ? (
         <>
           <p className="connection-status connection-status-on">● Conectado</p>

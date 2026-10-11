@@ -56,19 +56,23 @@ function ComparePanel({ playlists }: { playlists: Playlist[] }) {
       <div className="playlist-picker">
         <select value={a} onChange={(e) => setA(e.target.value)}>
           <option value="">Playlist A</option>
-          {playlists.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
+          <optgroup label="♪ Spotify — tus playlists">
+            {playlists.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </optgroup>
         </select>
         <select value={b} onChange={(e) => setB(e.target.value)}>
           <option value="">Playlist B</option>
-          {playlists.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
+          <optgroup label="♪ Spotify — tus playlists">
+            {playlists.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </optgroup>
         </select>
         <button onClick={handleCompare} disabled={loading || !a || !b}>
           Comparar
@@ -126,11 +130,13 @@ function HealthPanel({ playlists }: { playlists: Playlist[] }) {
       <div className="playlist-picker">
         <select value={playlistId} onChange={(e) => setPlaylistId(e.target.value)}>
           <option value="">Elegí una playlist</option>
-          {playlists.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
+          <optgroup label="♪ Spotify — tus playlists">
+            {playlists.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </optgroup>
         </select>
         <button onClick={handleAnalyze} disabled={loading || !playlistId}>
           Analizar
@@ -231,7 +237,7 @@ function MergePanel({ playlists }: { playlists: Playlist[] }) {
 
   return (
     <div>
-      <p>Elegí 2 o más playlists para fusionar:</p>
+      <p>Elegí 2 o más playlists de Spotify para fusionar:</p>
       <ul className="checkbox-list">
         {playlists.map((p) => (
           <li key={p.id}>
@@ -264,11 +270,13 @@ function MergePanel({ playlists }: { playlists: Playlist[] }) {
           <div className="playlist-picker">
             <select value={destinationId} onChange={(e) => setDestinationId(e.target.value)}>
               <option value="">Playlist destino existente</option>
-              {playlists.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
+              <optgroup label="♪ Spotify — tus playlists">
+                {playlists.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </optgroup>
             </select>
             <span>o</span>
             <input

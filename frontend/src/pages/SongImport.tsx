@@ -217,11 +217,13 @@ export default function SongImport() {
             <div className="playlist-picker">
               <select value={selectedPlaylistId} onChange={(e) => setSelectedPlaylistId(e.target.value)}>
                 <option value="">Elegí una playlist</option>
-                {playlists.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
+                <optgroup label="♪ Spotify — tus playlists">
+                  {playlists.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </optgroup>
               </select>
               <span>o</span>
               <input

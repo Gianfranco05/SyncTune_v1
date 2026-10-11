@@ -4,6 +4,7 @@ import {
   confirmPlaylist,
   createPlaylist,
   getPlaylists,
+  getYoutubePlaylists,
   getYoutubeStatus,
   previewPlaylist,
   spotifyLoginUrl,
@@ -11,7 +12,7 @@ import {
 } from '../api'
 import { CONFIDENCE_LABEL, friendlyError } from '../format'
 import { loadSettings, type SyncSettings } from '../settings'
-import type { Playlist, PlaylistPreviewResponse, Sync, SpotifyTrackCandidate } from '../types'
+import type { Playlist, PlaylistPreviewResponse, Sync, SpotifyTrackCandidate, YoutubePlaylist } from '../types'
 import ManualSearch from './ManualSearch'
 
 // item_id -> chosen candidate, or null to skip that song.
@@ -28,6 +29,7 @@ export default function PlaylistImport() {
   const [manualCandidates, setManualCandidates] = useState<Record<number, SpotifyTrackCandidate[]>>({})
   const [searchingItem, setSearchingItem] = useState<number | null>(null)
   const [playlists, setPlaylists] = useState<Playlist[]>([])
+  const [youtubePlaylists, setYoutubePlaylists] = useState<YoutubePlaylist[]>([])
   const [selectedPlaylistId, setSelectedPlaylistId] = useState('')
   const [newPlaylistName, setNewPlaylistName] = useState('')
   const [loading, setLoading] = useState(false)
@@ -36,13 +38,22 @@ export default function PlaylistImport() {
 
   useEffect(() => {
     getYoutubeStatus()
-      .then((me) => setYoutubeConnected(me.authenticated))
+      .then((me) => {
+        setYoutubeConnected(me.authenticated)
+        if (me.authenticated) {
+          // Best effort: without the list the user can still paste a URL.
+          getYoutubePlaylists()
+            .then(setYoutubePlaylists)
+            .catch(() => setYoutubePlaylists([]))
+        }
+      })
       .catch(() => setYoutubeConnected(false))
     getPlaylists().then(setPlaylists).catch(() => setPlaylists([]))
   }, [])
 
-  async function handlePreview(offset = 0) {
-    if (!youtubeUrl.trim()) return
+  async function handlePreview(offset = 0, urlOverride?: string) {
+    const url = (urlOverride ?? youtubeUrl).trim()
+    if (!url) return
     setLoading(true)
     setError(null)
     setPreview(null)
@@ -50,7 +61,7 @@ export default function PlaylistImport() {
     setManualCandidates({})
     setSearchingItem(null)
     try {
-      const data = await previewPlaylist(youtubeUrl.trim(), offset)
+      const data = await previewPlaylist(url, offset)
       setPreview(data)
       const initial: Selections = {}
       for (const item of data.items) {
@@ -115,6 +126,13 @@ export default function PlaylistImport() {
     setSearchingItem(null)
   }
 
+  function pickYoutubePlaylist(id: string) {
+    if (!id) return
+    const url = `https://www.youtube.com/playlist?list=${id}`
+    setYoutubeUrl(url)
+    handlePreview(0, url)
+  }
+
   const nextBatch =
     preview && preview.next_offset !== null ? (
       <button onClick={() => handlePreview(preview.next_offset ?? 0)} disabled={loading}>
@@ -156,6 +174,28 @@ export default function PlaylistImport() {
 
   return (
     <div>
+      {youtubePlaylists.length > 0 && (
+        <div className="source-picker">
+          <label htmlFor="youtube-playlist">Origen · YouTube</label>
+          <select
+            id="youtube-playlist"
+            value=""
+            disabled={loading}
+            onChange={(e) => pickYoutubePlaylist(e.target.value)}
+          >
+            <option value="">Elegí una de tus playlists de YouTube</option>
+            <optgroup label="▶ YouTube — tus playlists">
+              {youtubePlaylists.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.title}
+                  {p.video_count != null ? ` (${p.video_count})` : ''}
+                </option>
+              ))}
+            </optgroup>
+          </select>
+          <span className="source-picker-or">o pegá una URL:</span>
+        </div>
+      )}
       <div className="search-row">
         <input
           type="text"
@@ -255,13 +295,19 @@ export default function PlaylistImport() {
           </ul>
 
           <div className="playlist-picker">
-            <select value={selectedPlaylistId} onChange={(e) => setSelectedPlaylistId(e.target.value)}>
+            <select
+              aria-label="Playlist destino en Spotify"
+              value={selectedPlaylistId}
+              onChange={(e) => setSelectedPlaylistId(e.target.value)}
+            >
               <option value="">Elegí una playlist destino</option>
-              {playlists.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
+              <optgroup label="♪ Spotify — tus playlists">
+                {playlists.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </optgroup>
             </select>
             <span>o</span>
             <input

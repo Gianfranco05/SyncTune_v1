@@ -12,6 +12,7 @@ import type {
   SpotifyMe,
   SyncPreviewResponse,
   YoutubeMe,
+  YoutubePlaylist,
 } from './types'
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string
@@ -60,6 +61,10 @@ export function youtubeLoginUrl(): string {
 
 export function getYoutubeStatus(): Promise<YoutubeMe> {
   return request('/api/youtube/status')
+}
+
+export function getYoutubePlaylists(): Promise<YoutubePlaylist[]> {
+  return request('/api/youtube/playlists')
 }
 
 export function youtubeDisconnect(): Promise<{ ok: boolean }> {

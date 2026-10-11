@@ -16,9 +16,9 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.crypto import encrypt
 from app.core.database import get_db
-from app.core.security import require_session_user_id
+from app.core.security import get_valid_youtube_access_token, require_session_user_id
 from app.models import Connection, Provider
-from app.schemas.youtube import YoutubeMe
+from app.schemas.youtube import YoutubeMe, YoutubePlaylist
 from app.services import youtube_service
 
 router = APIRouter(prefix="/api/youtube", tags=["youtube"])
@@ -99,6 +99,11 @@ def status(request: Request, db: Session = Depends(get_db)):
         return YoutubeMe(authenticated=False)
 
     return YoutubeMe(authenticated=True, id=connection.provider_account_id, display_name=connection.display_name)
+
+
+@router.get("/playlists", response_model=list[YoutubePlaylist])
+async def my_playlists(access_token: str = Depends(get_valid_youtube_access_token)):
+    return await youtube_service.fetch_my_playlists(access_token)
 
 
 @router.post("/disconnect")

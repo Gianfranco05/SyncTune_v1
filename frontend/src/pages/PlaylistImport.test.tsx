@@ -9,13 +9,21 @@ vi.mock('../api', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../api')>()),
   getPlaylists: vi.fn(),
   getYoutubeStatus: vi.fn(),
+  getYoutubePlaylists: vi.fn(),
   previewPlaylist: vi.fn(),
   confirmPlaylist: vi.fn(),
   createPlaylist: vi.fn(),
   searchTracks: vi.fn(),
 }))
 
-import { confirmPlaylist, getPlaylists, getYoutubeStatus, previewPlaylist, searchTracks } from '../api'
+import {
+  confirmPlaylist,
+  getPlaylists,
+  getYoutubePlaylists,
+  getYoutubeStatus,
+  previewPlaylist,
+  searchTracks,
+} from '../api'
 
 function track(id: string, name: string, confidence = 95) {
   return {
@@ -86,6 +94,7 @@ describe('PlaylistImport', () => {
     localStorage.clear()
     vi.mocked(getYoutubeStatus).mockResolvedValue({ authenticated: true })
     vi.mocked(getPlaylists).mockResolvedValue([{ id: 'p1', name: 'Gym' }])
+    vi.mocked(getYoutubePlaylists).mockReset().mockResolvedValue([])
     vi.mocked(previewPlaylist).mockReset()
     vi.mocked(confirmPlaylist).mockReset().mockResolvedValue(done)
     vi.mocked(searchTracks).mockReset()
@@ -146,5 +155,21 @@ describe('PlaylistImport', () => {
     await waitFor(() => expect(confirmPlaylist).toHaveBeenCalledOnce())
     const [, body] = vi.mocked(confirmPlaylist).mock.calls[0]
     expect(body.selections[0]).toMatchObject({ track_id: 'm1', confidence: null, skip: false })
+  })
+
+  it('lists the connected YouTube account playlists and previews the one picked', async () => {
+    const user = userEvent.setup()
+    vi.mocked(getYoutubePlaylists).mockResolvedValue([
+      { id: 'PL1', title: 'Gym Mix', video_count: 12, thumbnail: null },
+    ])
+    vi.mocked(previewPlaylist).mockResolvedValue(batch(0, null, 1))
+    renderPlaylist()
+
+    const picker = await screen.findByLabelText(/Origen · YouTube/)
+    await user.selectOptions(picker, 'PL1')
+
+    await waitFor(() =>
+      expect(previewPlaylist).toHaveBeenCalledWith('https://www.youtube.com/playlist?list=PL1', 0),
+    )
   })
 })

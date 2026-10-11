@@ -21,6 +21,7 @@ class TestUnauthenticatedAccessIsRejected:
             ("post", "/api/spotify/playlists/some-id/tracks", {"track_uri": "spotify:track:x"}),
             ("get", "/api/spotify/search?q=abc", None),
             ("get", "/api/youtube/login", None),
+            ("get", "/api/youtube/playlists", None),
             ("post", "/api/sync/preview", {"youtube_url": "https://youtube.com/watch?v=x"}),
             ("post", "/api/sync/1/confirm", {"track_id": "x", "track_uri": "x", "track_name": "x", "track_artists": "x", "playlist_id": "x", "playlist_name": "x"}),
             ("get", "/api/sync/history", None),

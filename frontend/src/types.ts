@@ -40,6 +40,13 @@ export interface Playlist {
   name: string
 }
 
+export interface YoutubePlaylist {
+  id: string
+  title: string
+  video_count: number | null
+  thumbnail: string | null
+}
+
 export interface SyncPreviewResponse {
   sync_id: number
   video: YoutubeVideo

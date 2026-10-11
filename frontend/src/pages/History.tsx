@@ -14,7 +14,7 @@ export default function History() {
   }, [])
 
   if (error) return <p className="error">{error}</p>
-  if (syncs === null) return <p>Cargando...</p>
+  if (syncs === null) return <p className="loading">Cargando...</p>
 
   if (syncs.length === 0) {
     return (
