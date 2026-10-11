@@ -6,3 +6,8 @@ backend/.pytest_cache/
 frontend/node_modules/
 frontend/dist/
 frontend/.env
+
+# harness: per-project tool-call audit log (can include file contents)
+.harness/
+# harness: hooks that need harness installed (personal)
+.claude/settings.local.json

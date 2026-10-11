@@ -1,0 +1,35 @@
+# harness.yaml — read ONLY by the harness CLI, never by the agents.
+#
+# Claude Code, OpenCode, etc. don't know this file exists. They read the
+# files 'harness sync' generates from it (.claude/settings.json, .mcp.json,
+# opencode.json, ...). Editing this file changes nothing until you run:
+#
+#     harness sync
+#
+# 'harness doctor' tells you if the generated files are out of date.
+
+version: 1
+
+# strict           — ask before almost everything; good for unfamiliar repos.
+# balanced         — auto-approve read/edit/common commands inside the project,
+#                     ask for anything leaving it (network, other paths, MCP calls).
+# supervised-auto  — auto-approve everyday work end to end; a fixed list of
+#                     irreversible actions (force-push, rm -rf, sudo, deletes,
+#                     sending email/messages) always still asks.
+profile: supervised-auto
+
+agents:
+  - claude-code
+  - opencode
+
+engram:
+  enabled: true
+
+skills: []
+
+mcps: []
+
+overrides:
+  allow: []
+  ask: []
+  deny: []
